@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>SuperCart – Fast &amp; Fresh Grocery Delivery</title>
+  <meta name="description" content="SuperCart – 15-minute fresh grocery delivery with cart, coupons, order tracking and wishlist." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2310B981'/%3E%3Cpath d='M7 9.5H9.5L12.5 19.5H23L25 12H11' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='13.5' cy='23' r='1.8' fill='white'/%3E%3Ccircle cx='22' cy='23' r='1.8' fill='white'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-logo">🛒</div>
+  <div class="splash-title">SuperCart</div>
+  <div class="splash-sub">Fast &amp; Fresh Grocery Delivery</div>
+  <div class="splash-bar"><span></span></div>
+</div>
+
+<!-- Navbar -->
+<header class="navbar">
+  <div class="nav-inner">
+    <a class="logo" href="#" onclick="go('home');return false;"><div class="logo-mark">🛒</div><span class="txt">SuperCart</span></a>
+    <button class="loc-btn" onclick="openModal('locModal')"><span>⚡ Delivery in 15 mins</span><b id="locLabel">Select location ▾</b></button>
+    <div class="search"><span>🔍</span><input id="searchInput" type="search" placeholder="Search for fruits, milk, snacks…" oninput="onSearch(this.value)" /></div>
+    <div class="nav-actions">
+      <button class="icon-btn" title="Toggle theme" onclick="toggleTheme()" id="themeBtn">🌙</button>
+      <button class="icon-btn" title="Account" onclick="openModal('authModal')" id="userBtn">👤</button>
+      <button class="icon-btn" title="Cart" onclick="openCart()">🛍️<span class="badge hidden" id="cartBadge">0</span></button>
+    </div>
+  </div>
+  <nav class="nav-links" id="navLinks">
+    <button class="nav-link" data-view="home" onclick="go('home')">Home</button>
+    <button class="nav-link" data-view="shop" onclick="go('shop')">Shop All</button>
+    <button class="nav-link" data-view="wishlist" onclick="go('wishlist')">❤️ Wishlist</button>
+    <button class="nav-link" data-view="orders" onclick="go('orders')">📦 My Orders</button>
+  </nav>
+</header>
+
+<main class="container" id="app"></main>
+
+<div class="marquee"><div>
+  <span>⚡ 15-minute delivery</span><span>🥭 Farm-fresh produce</span><span>🎟️ Use SUPERCART20 for 20% off</span><span>🚚 FREESHIP = free delivery</span><span>🥛 Pure dairy daily</span><span>💚 Made in India</span>
+  <span>⚡ 15-minute delivery</span><span>🥭 Farm-fresh produce</span><span>🎟️ Use SUPERCART20 for 20% off</span><span>🚚 FREESHIP = free delivery</span><span>🥛 Pure dairy daily</span><span>💚 Made in India</span>
+</div></div>
+<footer>© 2026 SuperCart · SY Mini Project · Built with HTML &amp; CSS</footer>
+
+<!-- Mobile bottom nav -->
+<nav class="bottom-nav" id="bottomNav">
+  <button data-view="home" onclick="go('home')"><span>🏠</span>Home</button>
+  <button data-view="shop" onclick="go('shop')"><span>🧺</span>Shop</button>
+  <button data-view="wishlist" onclick="go('wishlist')"><span>❤️</span>Wishlist</button>
+  <button data-view="orders" onclick="go('orders')"><span>📦</span>Orders</button>
+  <button onclick="openCart()"><span>🛍️</span>Cart</button>
+</nav>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- Cart drawer -->
+<aside class="drawer" id="cartDrawer" aria-label="Cart">
+  <div class="drawer-head"><h3>🛍️ Your Cart</h3><button class="icon-btn" onclick="closeAll()">✕</button></div>
+  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-foot" id="cartFoot"></div>
+</aside>
+
+<!-- Quick view -->
+<div class="modal" id="qvModal"><button class="modal-close" onclick="closeAll()">✕</button><div id="qvBody"></div></div>
+
+<!-- Checkout -->
+<div class="modal" id="checkoutModal">
+  <button class="modal-close" onclick="closeAll()">✕</button>
+  <div class="modal-pad">
+    <h2 style="margin-bottom:4px">Checkout</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Enter delivery details and choose a payment method.</p>
+    <div class="row2">
+      <div class="field"><label>Full name</label><input id="coName" placeholder="Your name" /></div>
+      <div class="field"><label>Phone</label><input id="coPhone" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" /></div>
+    </div>
+    <div class="field"><label>Delivery address</label><textarea id="coAddr" rows="2" placeholder="Flat / street / area, city, PIN"></textarea></div>
+    <div class="field"><label>Order notes (optional)</label><input id="coNotes" placeholder="e.g. Leave at the door" /></div>
+    <label style="font-size:12px;font-weight:700;color:var(--muted)">Payment method</label>
+    <div class="pay-opts">
+      <label class="pay-opt"><input type="radio" name="pay" value="Cash on Delivery" checked /> 💵 Cash on Delivery</label>
+      <label class="pay-opt"><input type="radio" name="pay" value="UPI / Net Banking" /> 📱 UPI / Net Banking (demo)</label>
+      <label class="pay-opt"><input type="radio" name="pay" value="Credit / Debit Card" /> 💳 Credit / Debit Card (demo)</label>
+    </div>
+    <div id="coSummary" style="margin-bottom:14px"></div>
+    <div id="coError" class="msg-err" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary btn-block" onclick="placeOrder()">Place Order</button>
+  </div>
+</div>
+
+<!-- Success -->
+<div class="modal" id="successModal">
+  <div class="success" id="successBody"></div>
+</div>
+
+<!-- Location -->
+<div class="modal" id="locModal">
+  <button class="modal-close" onclick="closeAll()">✕</button>
+  <div class="modal-pad">
+    <h2 style="margin-bottom:12px">📍 Choose delivery location</h2>
+    <button class="btn btn-outline btn-block" style="margin-bottom:12px" onclick="detectLoc()">🎯 Use my current location</button>
+    <div class="field"><label>Or pick a city</label>
+      <select id="locSelect" onchange="setLoc(this.value)">
+        <option value="">Select city…</option>
+        <option>Pune, Maharashtra</option><option>Mumbai, Maharashtra</option><option>Nagpur, Maharashtra</option>
+        <option>Delhi NCR</option><option>Bengaluru, Karnataka</option><option>Hyderabad, Telangana</option>
+        <option>Chennai, Tamil Nadu</option><option>Kolkata, West Bengal</option><option>Ahmedabad, Gujarat</option><option>Jaipur, Rajasthan</option>
+      </select>
+    </div>
+    <div id="locMsg" class="msg-ok"></div>
+  </div>
+</div>
+
+<!-- Auth (demo, stored in browser only) -->
+<div class="modal" id="authModal">
+  <button class="modal-close" onclick="closeAll()">✕</button>
+  <div class="modal-pad" id="authBody"></div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ========== DATA (from SuperCart seed catalogue) ========== */
+const PRODUCTS = [{"id":"prod-fruit-1","name":"Ratnagiri Alphonso (Hapus) Mangoes","category":"Fruits","price":699,"mrp":899,"stock":45,"unit":"1 Dozen (12 pcs)","image":"https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=800&q=80","desc":"GI-tagged authentic Ratnagiri Alphonso Mangoes harvested at natural tree-ripened perfection. Unmatched golden aroma, zero chemical ripening, rich saffron pulp.","rating":4.98,"reviews":420,"badge":"Seasonal King","organic":true,"origin":"Ratnagiri, Maharashtra, India","cal":60},{"id":"prod-fruit-2","name":"Mahabaleshwar Fresh Strawberries","category":"Fruits","price":149,"mrp":199,"stock":50,"unit":"250g Box","image":"https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=800&q=80","desc":"Hand-plucked juicy crimson strawberries from the misty hills of Mahabaleshwar. Bursting with sweet tart flavor and natural antioxidants.","rating":4.92,"reviews":215,"badge":"Hill Fresh","organic":true,"origin":"Mahabaleshwar, Maharashtra, India","cal":32},{"id":"prod-fruit-3","name":"Shimla Royal Delicious Apples","category":"Fruits","price":189,"mrp":240,"stock":65,"unit":"1 kg (4-5 pcs)","image":"https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=800&q=80","desc":"Crisp, sweet and ruby-red Royal Delicious Apples sourced directly from high-altitude Himachal orchards. Natural wax-free peel.","rating":4.86,"reviews":178,"badge":"Orchard Direct","organic":true,"origin":"Shimla, Himachal Pradesh, India","cal":52},{"id":"prod-fruit-4","name":"Nagpur Sweet Mandarin Oranges (Santra)","category":"Fruits","price":99,"mrp":130,"stock":80,"unit":"1 kg","image":"https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&w=800&q=80","desc":"Sun-drenched, easy-to-peel juicy Nagpur oranges packed with vibrant citrus energy, tangy sweetness, and daily immunity-boosting Vitamin C.","rating":4.82,"reviews":142,"badge":"Vitamin C Rich","organic":true,"origin":"Nagpur, Maharashtra, India","cal":47},{"id":"prod-fruit-5","name":"Robusta Golden Bananas (Kela)","category":"Fruits","price":49,"mrp":65,"stock":90,"unit":"6 pcs (approx 800g)","image":"https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=800&q=80","desc":"Naturally ripened Robusta bananas from Jalgaon plantations. Perfect instant energy booster loaded with potassium and dietary carbs.","rating":4.79,"reviews":96,"badge":"Daily Essential","organic":true,"origin":"Jalgaon, Maharashtra, India","cal":89},{"id":"prod-fruit-6","name":"Sholapur Fresh Bhagwa Pomegranates (Anar)","category":"Fruits","price":179,"mrp":220,"stock":40,"unit":"1 kg (3-4 pcs)","image":"https://images.unsplash.com/photo-1541344999736-83eca872f242?auto=format&fit=crop&w=800&q=80","desc":"Deep crimson, jewel-like soft seeds with luscious sweet juice. Celebrated worldwide for heart health, polyphenols, and hemoglobin enhancement.","rating":4.91,"reviews":164,"badge":"Superfood","organic":true,"origin":"Solapur, Maharashtra, India","cal":83},{"id":"prod-veg-1","name":"Farm Fresh Organic Palak (Spinach)","category":"Vegetables","price":29,"mrp":40,"stock":60,"unit":"250g Bunch","image":"https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=800&q=80","desc":"Tender, crisp dark green organic spinach leaves hand-harvested daily at dawn. Rich in iron, lutein, and dietary nitrates.","rating":4.88,"reviews":112,"badge":"Harvest Today","organic":true,"origin":"Nashik Farms, Maharashtra, India","cal":23},{"id":"prod-veg-2","name":"Vine-Ripened Country Tomatoes (Tamatar)","category":"Vegetables","price":35,"mrp":50,"stock":95,"unit":"1 kg","image":"https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80","desc":"Plump, firm and tangy Desi tomatoes perfect for curries, rasam, salads, and fresh gravies. High in lycopene and vitamin C.","rating":4.81,"reviews":230,"badge":"Kitchen Staple","organic":true,"origin":"Narayangaon, Maharashtra, India","cal":18},{"id":"prod-veg-3","name":"Crisp Green English Cucumbers (Kheera)","category":"Vegetables","price":39,"mrp":55,"stock":70,"unit":"500g (2-3 pcs)","image":"https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=800&q=80","desc":"Hydroponically grown crunchy, thin-skinned cucumber with ultra-low bitterness and 95% water content. Ideal for cooling summer salads.","rating":4.84,"reviews":94,"badge":"Hydration Star","organic":true,"origin":"Pune Greenhouses, India","cal":15},{"id":"prod-veg-4","name":"Fresh Organic Green Coriander (Kothmir / Dhaniya)","category":"Vegetables","price":19,"mrp":28,"stock":120,"unit":"100g Bunch","image":"https://images.unsplash.com/photo-1588879462529-598e3b7b3bc0?auto=format&fit=crop&w=800&q=80","desc":"Fragrant, lush green fresh coriander leaves with roots cleaned. Essential aromatic herb for garnishing all Indian curries and making spicy chutneys.","rating":4.95,"reviews":310,"badge":"Super Aromatic","organic":true,"origin":"Otur, Maharashtra, India","cal":23},{"id":"prod-veg-5","name":"Crunchy Green Capsicum (Shimla Mirch)","category":"Vegetables","price":45,"mrp":60,"stock":55,"unit":"500g (3-4 pcs)","image":"https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80","desc":"Glossy, bell-shaped sweet peppers loaded with crunch. Ideal for stir-fries, sabzis, pizza toppings, and pasta recipes.","rating":4.77,"reviews":78,"badge":"Farm Crisp","organic":true,"origin":"Nashik, Maharashtra, India","cal":20},{"id":"prod-dairy-1","name":"Pure Desi Gir Cow A2 Milk (Chilled Glass Bottle)","category":"Dairy & Breakfast","price":95,"mrp":120,"stock":35,"unit":"1 Litre Bottle","image":"https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=800&q=80","desc":"Raw, unadulterated single-origin A2 milk from grass-fed Vedic Gir cows. Rich in A2 beta-casein protein, easily digestible and nutrient-dense.","rating":4.96,"reviews":388,"badge":"Pure A2 Vedic","organic":true,"origin":"Vrindavan Gaushala, Gujarat / Maharashtra","cal":65},{"id":"prod-dairy-2","name":"Fresh Farm Malai Paneer (Cottage Cheese)","category":"Dairy & Breakfast","price":110,"mrp":140,"stock":50,"unit":"200g Pack","image":"https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=800&q=80","desc":"Melt-in-mouth artisanal soft paneer crafted using whole buffalo milk. High protein, free from preservatives and artificial coagulants.","rating":4.91,"reviews":260,"badge":"Ultra Soft","organic":true,"origin":"Kolhapur Dairy, Maharashtra, India","cal":265},{"id":"prod-dairy-3","name":"Bilona Churned Pure Cow Ghee (Golden Jar)","category":"Dairy & Breakfast","price":699,"mrp":850,"stock":28,"unit":"500ml Glass Jar","image":"https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&w=800&q=80","desc":"Traditional wood-churned Bilona method ghee prepared from cultured curd of grass-fed cows. Golden grainy texture with rich heavenly aroma.","rating":4.97,"reviews":190,"badge":"Bilona Churned","organic":true,"origin":"Rajasthan Heritage Gaushala, India","cal":900},{"id":"prod-dairy-4","name":"Farm Fresh Free-Range Brown Eggs","category":"Dairy & Breakfast","price":99,"mrp":130,"stock":60,"unit":"Pack of 6 pcs","image":"https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=800&q=80","desc":"Nutrient-rich eggs laid by cage-free hens fed on organic grain and greens. Golden-orange yolks packed with protein, choline, and Omega-3.","rating":4.87,"reviews":145,"badge":"Cage-Free","organic":true,"origin":"Baramati Farms, Maharashtra, India","cal":72},{"id":"prod-bakery-1","name":"Artisan Wood-Fired Sourdough Loaf","category":"Bakery & Bread","price":149,"mrp":190,"stock":22,"unit":"400g Loaf","image":"https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=800&q=80","desc":"Naturally fermented over 36 hours with a wild sourdough starter. Crisp golden crust, airy crumb, and gut-friendly probiotics.","rating":4.89,"reviews":92,"badge":"Artisan Crafted","organic":true,"origin":"Pune Artisan Bakehouse, India","cal":240},{"id":"prod-bakery-2","name":"100% Whole Wheat Soft Ladi Pav","category":"Bakery & Bread","price":45,"mrp":60,"stock":55,"unit":"Pack of 6 Buns","image":"https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80","desc":"Mumbai-style cloud-soft ladi pav made from 100% stoneground whole wheat flour. Zero maida, zero palm oil. Perfect for Pav Bhaji & Vada Pav.","rating":4.83,"reviews":175,"badge":"Zero Maida","organic":true,"origin":"Mumbai Central Bakery, India","cal":180},{"id":"prod-snack-1","name":"Roasted Himalayan Salt Foxnuts (Makhana)","category":"Snacks & Drinks","price":139,"mrp":180,"stock":65,"unit":"100g Pouch","image":"https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=800&q=80","desc":"Crisp lotus seeds slow-roasted in pure cow ghee and tossed in pink Himalayan rock salt. Guilt-free crunch loaded with calcium and antioxidants.","rating":4.93,"reviews":220,"badge":"Guilt-Free Crunch","organic":true,"origin":"Darbhanga, Bihar, India","cal":350},{"id":"prod-snack-2","name":"Jumbo Kashmiri Mamra Almonds (Badam)","category":"Snacks & Drinks","price":489,"mrp":650,"stock":40,"unit":"250g Jar","image":"https://images.unsplash.com/photo-1508061252445-5350f3ab0a55?auto=format&fit=crop&w=800&q=80","desc":"Authentic 100% Mamra almonds from the valleys of Kashmir. Exceptionally high in natural almond oil content, Vitamin E, and brain-boosting nutrients.","rating":4.97,"reviews":168,"badge":"High Oil Mamra","organic":true,"origin":"Kashmir Valley, India","cal":579},{"id":"prod-staple-1","name":"Aged Royal Daawat Basmati Rice (Biryani Special)","category":"Staples & Spices","price":249,"mrp":320,"stock":50,"unit":"1 kg Pack","image":"https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80","desc":"Naturally aged for 2 years in Himalayan foothills. Extra-long slender pearls that cook up to 24mm with delicate sweet floral aroma.","rating":4.92,"reviews":280,"badge":"Aged 2 Years","organic":true,"origin":"Dehradun Valley, Uttarakhand, India","cal":350},{"id":"prod-staple-2","name":"Organic Unpolished Toor Dal (Arhar Dal)","category":"Staples & Spices","price":169,"mrp":210,"stock":75,"unit":"1 kg Pack","image":"https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=800&q=80","desc":"Chemical-free unpolished yellow pigeon peas. Retains natural dietary fiber and essential minerals, cooks into creamy golden dal.","rating":4.88,"reviews":195,"badge":"100% Unpolished","organic":true,"origin":"Latur, Maharashtra, India","cal":343},{"id":"prod-staple-3","name":"Lakadong High-Curcumin Organic Turmeric Powder (Haldi)","category":"Staples & Spices","price":129,"mrp":175,"stock":60,"unit":"200g Jar","image":"https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80","desc":"World-renowned Lakadong turmeric containing over 7.5% natural curcumin content. Potent anti-inflammatory spice with deep golden brilliance.","rating":4.98,"reviews":310,"badge":"7.5% Curcumin","organic":true,"origin":"Jaintia Hills, Meghalaya, India","cal":312},{"id":"prod-care-1","name":"Ayurvedic Neem & Tulsi Purifying Bath Soap","category":"Personal Care & Beauty","price":79,"mrp":110,"stock":90,"unit":"125g Bar","image":"https://images.unsplash.com/photo-1607006314144-8c88be23835e?auto=format&fit=crop&w=800&q=80","desc":"Cold-pressed handmade herbal soap enriched with pure virgin coconut oil, neem leaf extract, and organic holy basil (tulsi). Antibacterial & soothing.","rating":4.86,"reviews":140,"badge":"100% Herbal","organic":true,"origin":"Kerala Ayurvedic Center, India","cal":0},{"id":"prod-care-2","name":"Pure Organic Aloe Vera & Cucumber Gel","category":"Personal Care & Beauty","price":199,"mrp":280,"stock":45,"unit":"200ml Tub","image":"https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80","desc":"99% pure cold-stabilized organic inner leaf aloe vera soothing gel. Deeply hydrates skin, relieves sunburns, and moisturizes dry scalp.","rating":4.9,"reviews":185,"badge":"99% Pure Aloe","organic":true,"origin":"Udaipur, Rajasthan, India","cal":0},{"id":"prod-clean-1","name":"Eco-Friendly Plant-Based Lemon Dishwash Gel","category":"Cleaning & Household","price":149,"mrp":199,"stock":65,"unit":"500ml Dispenser","image":"https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=800&q=80","desc":"Nontoxic citrus formula powered by real lime extracts and bio-enzymes. Cuts through stubborn grease on pans and glassware without drying hands.","rating":4.82,"reviews":110,"badge":"Plant Powered","organic":true,"origin":"Bengaluru Eco Labs, India","cal":0},{"id":"prod-elec-1","name":"Portable USB-C Rechargeable Fresh Fruit Smoothie Blender","category":"Electronics & Appliances","price":899,"mrp":1499,"stock":30,"unit":"1 Unit (380ml Bottle)","image":"https://images.unsplash.com/photo-1570222094114-d054a817e56b?auto=format&fit=crop&w=800&q=80","desc":"Compact 6-blade stainless steel portable blender. Crush fruits, veggies, and milkshakes anywhere on the go. 2000mAh battery with Type-C charging.","rating":4.91,"reviews":310,"badge":"Bestseller","organic":false,"origin":"SuperCart Smart Home Technologies","cal":0},{"id":"prod-elec-2","name":"Stainless Steel Rapid Boil Electric Kettle (1.8L)","category":"Electronics & Appliances","price":649,"mrp":1199,"stock":40,"unit":"1.8L Kettle","image":"https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80","desc":"1500W rapid heating electric kettle with auto shut-off and boil-dry protection. Boil water for green tea, instant noodles, and hot soups in 3 minutes.","rating":4.85,"reviews":240,"badge":"1500W Fast Boil","organic":false,"origin":"SuperCart Appliances India","cal":0}];
+const CATS = [
+  {n:'Fruits',e:'🍎'},{n:'Vegetables',e:'🥦'},{n:'Dairy & Breakfast',e:'🥛'},{n:'Bakery & Bread',e:'🍞'},
+  {n:'Snacks & Drinks',e:'🍿'},{n:'Staples & Spices',e:'🌾'},{n:'Personal Care & Beauty',e:'🌿'},
+  {n:'Cleaning & Household',e:'🧼'},{n:'Electronics & Appliances',e:'⚡'}
+];
+const COUPONS = {
+  SUPERCART20:{pct:20,msg:'20% Super Saver discount applied!'},
+  FRESH20:{pct:20,msg:'20% Super Saver discount applied!'},
+  FRESH10:{pct:10,msg:'10% Grocery discount applied!'},
+  FREESHIP:{pct:0,free:true,msg:'Free Express Delivery unlocked!'}
+};
+const STAGES = [
+  {s:'Placed',ic:'📦',t:'Order Placed'},{s:'Processing',ic:'🧑‍🍳',t:'Packing'},
+  {s:'Out for Delivery',ic:'🛵',t:'On the way'},{s:'Delivered',ic:'✅',t:'Delivered'}
+];
+const STAGE_MS = 15000; // demo: moves to next stage every 15s
+
+/* ========== STATE ========== */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem('sc_'+k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem('sc_'+k, JSON.stringify(v)); } catch(e){} }
+};
+let cart = store.get('cart', {});        // {productId: qty}
+let wish = store.get('wish', []);
+let orders = store.get('orders', []);
+let user = store.get('user', null);
+let coupon = store.get('coupon', null);
+let view = 'home', query = '', activeCat = 'All', sortBy = 'relevance';
+let trackTimer = null;
+
+/* ========== HELPERS ========== */
+const $ = id => document.getElementById(id);
+const inr = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: (n % 1 ? 2 : 0), maximumFractionDigits: 2});
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byId = id => PRODUCTS.find(p => p.id === id);
+const catEmoji = c => (CATS.find(x => x.n === c) || {e:'🛒'}).e;
+const off = p => p.mrp > p.price ? Math.round((p.mrp - p.price) / p.mrp * 100) : 0;
+function toast(msg){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  $('toasts').appendChild(t); setTimeout(() => t.remove(), 2700);
+}
+function imgTag(p, cls){
+  return `<img ${cls ? 'class="'+cls+'"' : ''} src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" onerror="imgErr(this,'${catEmoji(p.category)}')">`;
+}
+function imgErr(el, emoji){
+  el.onerror = null;
+  el.src = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#ecfdf5"/><text x="200" y="175" font-size="90" text-anchor="middle">${emoji}</text></svg>`);
+}
+
+/* ========== CART MATH ========== */
+function cartLines(){ return Object.keys(cart).map(id => ({p: byId(id), q: cart[id]})).filter(l => l.p); }
+function totals(){
+  const lines = cartLines();
+  const subtotal = lines.reduce((s,l) => s + l.p.price * l.q, 0);
+  const c = coupon ? COUPONS[coupon] : null;
+  const discount = c ? Math.round(subtotal * c.pct / 100) : 0;
+  const net = Math.max(0, subtotal - discount);
+  const baseFee = net === 0 ? 0 : Number((net * 0.03).toFixed(2));   // 3% delivery charge
+  const delivery = (c && c.free) ? 0 : baseFee;
+  const tax = Number((net * 0.05).toFixed(2));                        // 5% tax
+  const total = Number((net + delivery + tax).toFixed(2));
+  const mrpSave = lines.reduce((s,l) => s + (l.p.mrp - l.p.price) * l.q, 0);
+  return {subtotal, discount, delivery, tax, total, count: lines.reduce((s,l)=>s+l.q,0), mrpSave};
+}
+function saveCart(){ store.set('cart', cart); store.set('coupon', coupon); updateBadge(); }
+function updateBadge(){
+  const n = totals().count, b = $('cartBadge');
+  b.textContent = n; b.classList.toggle('hidden', n === 0);
+}
+function setQty(id, q){
+  const p = byId(id); if (!p) return;
+  q = Math.min(q, p.stock || 99);
+  if (q <= 0) delete cart[id]; else cart[id] = q;
+  if (!Object.keys(cart).length) coupon = null;
+  saveCart(); refreshCartUI();
+}
+function addToCart(id){ setQty(id, (cart[id] || 0) + 1); toast('Added to cart 🛒'); }
+
+/* ========== RENDER: PRODUCTS ========== */
+function qtyControl(p){
+  const q = cart[p.id] || 0;
+  return q
+    ? `<div class="qty"><button onclick="setQty('${p.id}',${q-1})">−</button><span>${q}</span><button onclick="setQty('${p.id}',${q+1})">+</button></div>`
+    : `<button class="add-btn" onclick="addToCart('${p.id}')">ADD</button>`;
+}
+function productCard(p){
+  const liked = wish.includes(p.id), o = off(p);
+  return `<article class="card" id="card-${p.id}">
+    ${p.badge ? `<span class="tag">${esc(p.badge)}</span>` : ''}
+    <button class="heart" title="Wishlist" onclick="toggleWish('${p.id}')">${liked ? '❤️' : '🤍'}</button>
+    ${o ? `<span class="off">${o}% OFF</span>` : ''}
+    <div class="card-img" onclick="quickView('${p.id}')">${imgTag(p)}</div>
+    <div class="card-body">
+      <h3 onclick="quickView('${p.id}')">${esc(p.name)}</h3>
+      <span class="unit">${esc(p.unit)}</span>
+      <span class="rating">⭐ ${p.rating} <small>(${p.reviews})</small></span>
+      <div class="price-row"><div class="price">${inr(p.price)}${o ? `<s>${inr(p.mrp)}</s>` : ''}</div><span id="qc-${p.id}">${qtyControl(p)}</span></div>
+    </div>
+  </article>`;
+}
+function refreshProductControls(){
+  PRODUCTS.forEach(p => { const el = $('qc-'+p.id); if (el) el.innerHTML = qtyControl(p); });
+}
+function filtered(){
+  let list = PRODUCTS.filter(p =>
+    (activeCat === 'All' || p.category === activeCat) &&
+    (!query || (p.name + ' ' + p.category + ' ' + p.desc).toLowerCase().includes(query.toLowerCase())));
+  if (sortBy === 'low') list.sort((a,b) => a.price - b.price);
+  if (sortBy === 'high') list.sort((a,b) => b.price - a.price);
+  if (sortBy === 'rating') list.sort((a,b) => b.rating - a.rating);
+  if (sortBy === 'discount') list.sort((a,b) => off(b) - off(a));
+  return list;
+}
+function gridHTML(list){
+  return list.length ? `<div class="grid">${list.map(productCard).join('')}</div>`
+    : `<div class="empty"><span class="em">🔎</span><h3>No products found</h3><p>Try a different search or category.</p></div>`;
+}
+
+/* ========== VIEWS ========== */
+function renderHome(){
+  const featured = PRODUCTS.filter(p => p.badge).slice(0, 8);
+  const deals = [...PRODUCTS].sort((a,b) => off(b) - off(a)).slice(0, 8);
+  return `
+  <section class="hero">
+    <div><span class="pill">⚡ Delivery in 15 minutes</span>
+      <h1>Fresh groceries,<br>delivered fast.</h1>
+      <p>Farm-fresh fruits, pure dairy, bakery &amp; daily essentials – with live order tracking and great coupons.</p>
+      <button class="btn btn-light" onclick="go('shop')">Start Shopping →</button>
+      <button class="btn" style="color:#fff;border:1.5px solid rgba(255,255,255,.5);margin-left:6px" onclick="applyCoupon('SUPERCART20',true)">Get 20% OFF</button>
+    </div>
+    <div class="hero-art">🧺</div>
+  </section>
+  <section class="perks">
+    <div class="perk"><span class="ic">⚡</span><div><b>15-min delivery</b><small>Express at your door</small></div></div>
+    <div class="perk"><span class="ic">🌿</span><div><b>Farm fresh</b><small>Quality checked daily</small></div></div>
+    <div class="perk"><span class="ic">🎟️</span><div><b>Super coupons</b><small>SUPERCART20, FREESHIP</small></div></div>
+    <div class="perk"><span class="ic">📍</span><div><b>Live tracking</b><small>Follow every order</small></div></div>
+  </section>
+  <div class="section-head"><h2>Shop by category</h2></div>
+  <div class="cat-grid">${CATS.map(c => `<button class="cat-card" onclick="goCat('${c.n.replace(/'/g,"\\'")}')"><span class="em">${c.e}</span>${esc(c.n)}</button>`).join('')}</div>
+  <div class="section-head"><h2>⭐ Featured picks</h2><button class="chip" onclick="go('shop')">View all</button></div>
+  ${gridHTML(featured)}
+  <div class="section-head"><h2>🔥 Best deals</h2></div>
+  ${gridHTML(deals)}`;
+}
+function renderShop(){
+  const list = filtered();
+  return `
+  <h1 class="page-title">${query ? 'Results for “' + esc(query) + '”' : (activeCat === 'All' ? 'All Products' : esc(activeCat))}</h1>
+  <div class="chips">
+    ${['All', ...CATS.map(c => c.n)].map(c => `<button class="chip ${c===activeCat?'active':''}" onclick="goCat('${c.replace(/'/g,"\\'")}')">${c==='All'?'🛒 All':catEmoji(c)+' '+esc(c)}</button>`).join('')}
+  </div>
+  <div class="section-head"><span style="color:var(--muted);font-size:13px">${list.length} item(s)</span>
+    <select style="width:auto" onchange="sortBy=this.value;render()">
+      ${[['relevance','Sort: Relevance'],['low','Price: Low to High'],['high','Price: High to Low'],['rating','Top Rated'],['discount','Best Discount']].map(o=>`<option value="${o[0]}" ${sortBy===o[0]?'selected':''}>${o[1]}</option>`).join('')}
+    </select></div>
+  ${gridHTML(list)}`;
+}
+function renderWishlist(){
+  const list = PRODUCTS.filter(p => wish.includes(p.id));
+  return `<h1 class="page-title">❤️ My Wishlist</h1>` + (list.length ? gridHTML(list)
+    : `<div class="empty"><span class="em">💔</span><h3>Your wishlist is empty</h3><p>Tap the heart on any product to save it.</p><br><button class="btn btn-primary" onclick="go('shop')">Browse products</button></div>`);
+}
+function orderStage(o){
+  if (o.status === 'Cancelled') return -1;
+  return Math.min(STAGES.length - 1, Math.floor((Date.now() - o.createdAt) / STAGE_MS));
+}
+function renderOrders(){
+  if (!orders.length) return `<h1 class="page-title">📦 My Orders</h1><div class="empty"><span class="em">🧾</span><h3>No orders yet</h3><p>Place your first order and track it live here.</p><br><button class="btn btn-primary" onclick="go('shop')">Start shopping</button></div>`;
+  return `<h1 class="page-title">📦 My Orders</h1>` + orders.map(o => {
+    const st = orderStage(o), cancelled = st === -1;
+    const label = cancelled ? 'Cancelled' : STAGES[st].s;
+    const eta = cancelled || st === 3 ? '' : `<p style="font-size:13px;color:var(--muted)">🛵 Arriving around <b>${new Date(o.createdAt + 15*60000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</b> · Driver: ${esc(o.driver)}</p>`;
+    return `<div class="order-card">
+      <div class="order-top"><div><b>${esc(o.id)}</b><div style="font-size:12px;color:var(--light)">${new Date(o.createdAt).toLocaleString()}</div></div><span class="status ${cancelled?'Cancelled':''}">${label}</span></div>
+      ${cancelled ? '' : `<div class="steps">${STAGES.map((s,i) => `<div class="step ${i<=st?'done':''}"><i>${i<=st?s.ic:'•'}</i>${s.t}</div>`).join('')}</div>
+      <div class="progress"><span style="width:${Math.min(100,(st+1)/STAGES.length*100)}%"></span></div>`}
+      ${eta}
+      <div style="font-size:13px;margin:8px 0;color:var(--muted)">${o.items.map(i => esc(i.name) + ' × ' + i.q).join(' · ')}</div>
+      <div class="line total"><span>Total (${esc(o.payment)})</span><span>${inr(o.total)}</span></div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="reorder('${o.id}')">🔁 Reorder</button>
+        <button class="btn btn-outline" onclick="printInvoice('${o.id}')">🧾 Invoice</button>
+        ${!cancelled && st < 2 ? `<button class="btn btn-outline" style="color:var(--danger)" onclick="cancelOrder('${o.id}')">Cancel</button>` : ''}
+      </div></div>`;
+  }).join('');
+}
+function render(){
+  clearInterval(trackTimer);
+  const app = $('app');
+  app.innerHTML = ({home: renderHome, shop: renderShop, wishlist: renderWishlist, orders: renderOrders}[view])();
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  if (view === 'orders') trackTimer = setInterval(() => { if (view === 'orders') $('app').innerHTML = renderOrders(); }, 3000);
+}
+function go(v){ view = v; if (v !== 'shop') { query = ''; $('searchInput').value = ''; } if (v === 'shop' && !query) activeCat = activeCat; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function goCat(c){ activeCat = c; view = 'shop'; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function onSearch(v){
+  query = v.trim();
+  if (query) { activeCat = 'All'; view = 'shop'; render(); }
+  else if (view === 'shop') render();
+}
+
+/* ========== WISHLIST ========== */
+function toggleWish(id){
+  wish = wish.includes(id) ? wish.filter(x => x !== id) : [...wish, id];
+  store.set('wish', wish);
+  toast(wish.includes(id) ? 'Saved to wishlist ❤️' : 'Removed from wishlist');
+  if (view === 'wishlist') render();
+  else document.querySelectorAll(`#card-${id} .heart`).forEach(h => h.textContent = wish.includes(id) ? '❤️' : '🤍');
+}
+
+/* ========== QUICK VIEW ========== */
+function quickView(id){
+  const p = byId(id), o = off(p);
+  $('qvBody').innerHTML = `<div class="qv">
+    <div class="qv-img">${imgTag(p)}</div>
+    <div class="qv-info">
+      <div class="meta"><span>${catEmoji(p.category)} ${esc(p.category)}</span>${p.organic?'<span>🌱 Organic</span>':''}${p.origin?`<span>📍 ${esc(p.origin)}</span>`:''}</div>
+      <h2>${esc(p.name)}</h2>
+      <div class="rating">⭐ ${p.rating} (${p.reviews} reviews) · ${esc(p.unit)}</div>
+      <p>${esc(p.desc)}</p>
+      ${p.cal ? `<div class="meta"><span>🔥 ${p.cal} kcal / 100g</span></div>` : ''}
+      <div class="price" style="font-size:24px">${inr(p.price)} ${o ? `<s>${inr(p.mrp)}</s> <span style="color:var(--brand);font-size:13px">${o}% off</span>` : ''}</div>
+      <div style="font-size:12px;color:var(--light)">${p.stock > 0 ? p.stock + ' in stock' : 'Out of stock'}</div>
+      <div style="display:flex;gap:8px;margin-top:auto"><span id="qvqty">${qtyControl(p)}</span>
+        <button class="btn btn-outline" onclick="toggleWish('${p.id}');quickView('${p.id}')">${wish.includes(p.id)?'❤️ Saved':'🤍 Save'}</button></div>
+    </div></div>`;
+  openModal('qvModal');
+}
+
+/* ========== CART UI ========== */
+function openCart(){ refreshCartUI(); $('cartDrawer').classList.add('open'); $('overlay').classList.add('open'); }
+function refreshCartUI(){
+  updateBadge(); refreshProductControls();
+  if ($('qvModal').classList.contains('open')) { const q = $('qvqty'); const id = (q.innerHTML.match(/'(prod-[^']+)'/)||[])[1]; if (id) q.innerHTML = qtyControl(byId(id)); }
+  const lines = cartLines(), t = totals();
+  if (!lines.length) {
+    $('cartBody').innerHTML = `<div class="empty"><span class="em">🛒</span><h3>Your cart is empty</h3><p>Add fresh groceries to get started.</p></div>`;
+    $('cartFoot').innerHTML = `<button class="btn btn-primary btn-block" onclick="closeAll();go('shop')">Browse products</button>`;
+    return;
+  }
+  $('cartBody').innerHTML = lines.map(l => `<div class="cart-item">${imgTag(l.p)}
+    <div class="info"><b>${esc(l.p.name)}</b><small>${esc(l.p.unit)}</small><div class="price" style="font-size:14px">${inr(l.p.price * l.q)}</div></div>
+    <div class="qty"><button onclick="setQty('${l.p.id}',${l.q-1})">−</button><span>${l.q}</span><button onclick="setQty('${l.p.id}',${l.q+1})">+</button></div></div>`).join('');
+  $('cartFoot').innerHTML = `
+    ${coupon
+      ? `<div class="line save"><span>🎟️ ${coupon} applied</span><button class="msg-err" onclick="removeCoupon()">Remove</button></div>`
+      : `<div class="coupon-row"><input id="couponInput" placeholder="Promo code" onkeydown="if(event.key==='Enter')applyCoupon($('couponInput').value)"><button class="btn btn-outline" onclick="applyCoupon($('couponInput').value)">Apply</button></div><div id="couponMsg"></div>`}
+    <div class="line"><span>Subtotal</span><span>${inr(t.subtotal)}</span></div>
+    ${t.discount ? `<div class="line save"><span>Coupon discount</span><span>−${inr(t.discount)}</span></div>` : ''}
+    <div class="line"><span>Delivery (3%)</span><span>${t.delivery === 0 ? 'FREE' : inr(t.delivery)}</span></div>
+    <div class="line"><span>Tax (5%)</span><span>${inr(t.tax)}</span></div>
+    <div class="line total"><span>Total</span><span>${inr(t.total)}</span></div>
+    ${t.mrpSave + t.discount > 0 ? `<div class="msg-ok" style="margin:6px 0">🎉 You're saving ${inr(t.mrpSave + t.discount)} on this order</div>` : ''}
+    <button class="btn btn-primary btn-block" style="margin-top:8px" onclick="openCheckout()">Proceed to Checkout →</button>`;
+}
+function applyCoupon(code, fromHero){
+  const c = String(code || '').trim().toUpperCase();
+  if (!c) return;
+  if (!Object.keys(cart).length && fromHero) { toast('Add items first, then code ' + c + ' will apply'); go('shop'); return; }
+  if (COUPONS[c]) { coupon = c; saveCart(); refreshCartUI(); const m = $('couponMsg'); toast(COUPONS[c].msg); if (fromHero) openCart(); }
+  else { const m = $('couponMsg'); if (m) m.innerHTML = '<span class="msg-err">Invalid code. Try SUPERCART20 or FREESHIP.</span>'; }
+}
+function removeCoupon(){ coupon = null; saveCart(); refreshCartUI(); }
+
+/* ========== CHECKOUT ========== */
+function openCheckout(){
+  if (!cartLines().length) return;
+  if (!user) { toast('Please sign in to place an order'); closeAll(); showAuth('signin'); openModal('authModal'); return; }
+  $('coName').value = user.name || '';
+  $('coError').textContent = '';
+  const t = totals();
+  $('coSummary').innerHTML = `<div class="line"><span>Items (${t.count})</span><span>${inr(t.subtotal)}</span></div>
+    ${t.discount ? `<div class="line save"><span>Discount</span><span>−${inr(t.discount)}</span></div>` : ''}
+    <div class="line"><span>Delivery</span><span>${t.delivery===0?'FREE':inr(t.delivery)}</span></div>
+    <div class="line"><span>Tax</span><span>${inr(t.tax)}</span></div>
+    <div class="line total"><span>To pay</span><span>${inr(t.total)}</span></div>`;
+  $('cartDrawer').classList.remove('open');
+  openModal('checkoutModal');
+}
+function placeOrder(){
+  const name = $('coName').value.trim(), phone = $('coPhone').value.trim(), addr = $('coAddr').value.trim();
+  const err = $('coError');
+  if (name.length < 2) return err.textContent = 'Please enter your name.';
+  if (!/^[6-9]\d{9}$/.test(phone)) return err.textContent = 'Enter a valid 10-digit Indian mobile number.';
+  if (addr.length < 8) return err.textContent = 'Please enter a complete delivery address.';
+  const t = totals(), lines = cartLines();
+  const order = {
+    id: 'SC' + Date.now().toString().slice(-8),
+    createdAt: Date.now(), status: 'Placed',
+    customer: name, phone, address: addr, notes: $('coNotes').value.trim(),
+    payment: document.querySelector('input[name=pay]:checked').value,
+    items: lines.map(l => ({id: l.p.id, name: l.p.name, price: l.p.price, q: l.q})),
+    coupon: coupon, subtotal: t.subtotal, discount: t.discount, delivery: t.delivery, tax: t.tax, total: t.total,
+    driver: 'Ramesh Patil (SuperCart Express)'
+  };
+  orders.unshift(order); store.set('orders', orders);
+  cart = {}; coupon = null; saveCart(); refreshCartUI();
+  closeAll();
+  $('successBody').innerHTML = `<div class="big">🎉</div><h2 style="margin:10px 0 4px">Order placed!</h2>
+    <p style="color:var(--muted);margin-bottom:6px">Order <b>${order.id}</b> · ${inr(order.total)} · ${esc(order.payment)}</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:18px">Estimated delivery in ~15 minutes 🛵</p>
+    <button class="btn btn-primary" onclick="closeAll();go('orders')">Track order</button>
+    <button class="btn btn-outline" style="margin-left:6px" onclick="closeAll();go('home')">Continue shopping</button>`;
+  openModal('successModal'); confetti();
+}
+function confetti(){
+  const cols = ['#10b981','#fde047','#f97316','#3b82f6','#ec4899'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('i'); c.className = 'confetti';
+    c.style.left = Math.random()*100 + 'vw'; c.style.background = cols[i % cols.length];
+    c.style.animationDelay = Math.random()*0.8 + 's'; c.style.animationDuration = (1.8 + Math.random()*1.5) + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4200);
+  }
+}
+function cancelOrder(id){ const o = orders.find(x => x.id === id); if (o) { o.status = 'Cancelled'; store.set('orders', orders); toast('Order cancelled'); render(); } }
+function reorder(id){
+  const o = orders.find(x => x.id === id); if (!o) return;
+  o.items.forEach(i => { if (byId(i.id)) cart[i.id] = Math.min((cart[i.id]||0) + i.q, byId(i.id).stock || 99); });
+  saveCart(); toast('Items added to cart'); openCart();
+}
+function printInvoice(id){
+  const o = orders.find(x => x.id === id); if (!o) return;
+  const w = window.open('', '_blank'); if (!w) return toast('Allow pop-ups to view the invoice');
+  w.document.write(`<title>Invoice ${esc(o.id)}</title><body style="font-family:system-ui;max-width:640px;margin:30px auto;padding:0 16px">
+    <h1>🛒 SuperCart – Invoice</h1><p><b>${esc(o.id)}</b> · ${new Date(o.createdAt).toLocaleString()}<br>${esc(o.customer)} · ${esc(o.phone)}<br>${esc(o.address)}</p>
+    <table width="100%" cellpadding="6" style="border-collapse:collapse" border="1"><tr><th align="left">Item</th><th>Qty</th><th align="right">Amount</th></tr>
+    ${o.items.map(i => `<tr><td>${esc(i.name)}</td><td align="center">${i.q}</td><td align="right">${inr(i.price*i.q)}</td></tr>`).join('')}</table>
+    <p align="right">Subtotal: ${inr(o.subtotal)}<br>Discount: −${inr(o.discount)}<br>Delivery: ${inr(o.delivery)}<br>Tax: ${inr(o.tax)}<br><b style="font-size:18px">Total: ${inr(o.total)}</b><br>Paid via ${esc(o.payment)}</p>
+    <script>window.print()<\/script></body>`);
+  w.document.close();
+}
+
+/* ========== LOCATION ========== */
+function setLoc(v){ if (!v) return; store.set('loc', v); $('locLabel').textContent = v + ' ▾'; $('locMsg').textContent = '✅ Delivering to ' + v; setTimeout(closeAll, 600); }
+function detectLoc(){
+  const m = $('locMsg');
+  if (!navigator.geolocation) { m.textContent = 'Geolocation is not supported in this browser.'; return; }
+  m.textContent = 'Detecting…';
+  navigator.geolocation.getCurrentPosition(
+    pos => setLoc('Current location (' + pos.coords.latitude.toFixed(2) + ', ' + pos.coords.longitude.toFixed(2) + ')'),
+    () => { m.innerHTML = '<span class="msg-err">Permission denied. Please choose a city.</span>'; });
+}
+
+/* ========== AUTH (demo – saved in this browser only) ========== */
+function showAuth(mode){
+  if (user) {
+    $('authBody').innerHTML = `<div style="text-align:center"><div style="font-size:56px">👤</div><h2>${esc(user.name)}</h2><p style="color:var(--muted);margin-bottom:16px">${esc(user.email)}</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">${orders.length} order(s) · ${wish.length} wishlist item(s)</p>
+      <button class="btn btn-outline" onclick="closeAll();go('orders')">My orders</button>
+      <button class="btn btn-danger" style="margin-left:6px" onclick="signOut()">Sign out</button></div>`;
+    return;
+  }
+  const up = mode === 'signup';
+  $('authBody').innerHTML = `<h2 style="margin-bottom:4px">${up ? 'Create account' : 'Welcome back'}</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Demo login – details are stored only in your browser.</p>
+    ${up ? '<div class="field"><label>Name</label><input id="auName" placeholder="Your name"></div>' : ''}
+    <div class="field"><label>Email</label><input id="auEmail" type="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input id="auPass" type="password" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')doAuth('${mode}')"></div>
+    <div id="auErr" class="msg-err" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary btn-block" onclick="doAuth('${mode}')">${up ? 'Sign up' : 'Sign in'}</button>
+    <p style="text-align:center;font-size:13px;margin-top:14px;color:var(--muted)">${up ? 'Already have an account?' : 'New to SuperCart?'}
+      <a href="#" style="color:var(--brand);font-weight:700" onclick="showAuth('${up ? 'signin' : 'signup'}');return false;">${up ? 'Sign in' : 'Sign up'}</a></p>`;
+}
+function doAuth(mode){
+  const email = $('auEmail').value.trim().toLowerCase(), pass = $('auPass').value, err = $('auErr');
+  if (!/^\S+@\S+\.\S+$/.test(email)) return err.textContent = 'Enter a valid email address.';
+  if (pass.length < 6) return err.textContent = 'Password must be at least 6 characters.';
+  const users = store.get('users', {});
+  const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return String(h); };
+  if (mode === 'signup') {
+    const name = $('auName').value.trim();
+    if (name.length < 2) return err.textContent = 'Please enter your name.';
+    if (users[email]) return err.textContent = 'Account already exists. Please sign in.';
+    users[email] = {name, hash: hash(pass)}; store.set('users', users);
+    user = {name, email};
+  } else {
+    const u = users[email];
+    if (!u || u.hash !== hash(pass)) return err.textContent = 'Incorrect email or password.';
+    user = {name: u.name, email};
+  }
+  store.set('user', user); syncUser(); closeAll(); toast('Welcome, ' + user.name.split(' ')[0] + '! 👋');
+}
+function signOut(){ user = null; store.set('user', null); syncUser(); closeAll(); toast('Signed out'); }
+function syncUser(){ $('userBtn').textContent = user ? user.name.trim()[0].toUpperCase() : '👤'; $('userBtn').style.fontWeight = '800'; }
+
+/* ========== MODALS / THEME ========== */
+function openModal(id){
+  if (id === 'authModal') showAuth(user ? '' : 'signin');
+  $('cartDrawer').classList.remove('open');
+  document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+  $(id).classList.add('open'); $('overlay').classList.add('open');
+}
+function closeAll(){
+  document.querySelectorAll('.modal,.drawer').forEach(m => m.classList.remove('open'));
+  $('overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+function toggleTheme(){
+  const dark = document.documentElement.dataset.theme !== 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  $('themeBtn').textContent = dark ? '☀️' : '🌙'; store.set('theme', dark ? 'dark' : 'light');
+}
+
+/* ========== INIT ========== */
+(function init(){
+  if (store.get('theme', 'light') === 'dark') { document.documentElement.dataset.theme = 'dark'; $('themeBtn').textContent = '☀️'; }
+  const loc = store.get('loc', null); if (loc) $('locLabel').textContent = loc + ' ▾';
+  syncUser(); updateBadge(); render();
+  setTimeout(() => $('splash').classList.add('done'), 1700);
+})();
+</script>
+</body>
+</html>
